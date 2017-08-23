@@ -198,10 +198,11 @@ setup(
             'inspire_search = inspirehep.modules.search:InspireSearch',
             'inspire_utils = inspirehep.utils.ext:INSPIREUtils',
             'inspire_workflows = inspirehep.modules.workflows:INSPIREWorkflows',
-            'invenio_collections = invenio_collections:InvenioCollections',
+            'invenio_collections = invenio_collections:InvenioCollections'
         ],
         'invenio_base.api_blueprints': [
             'inspirehep_editor = inspirehep.modules.editor:blueprint',
+            'inspirehep_multieditor = inspirehep.modules.multieditor:blueprint',
         ],
         'invenio_base.apps': [
             'inspire_arxiv = inspirehep.modules.arxiv:InspireArXiv',
