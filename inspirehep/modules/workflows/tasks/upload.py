@@ -55,7 +55,10 @@ def store_record(obj, eng):
         # Now that we have a recid, we can properly download the documents
         record.download_documents_and_figures(src_records=[obj])
 
-    obj.data['control_number'] = created_pid
+        obj.data['control_number'] = created_pid
+        # store head_uuid to store the root later
+        obj.extra_data['head_uuid'] = str(record.id)
+
     record.commit()
     obj.save()
     db.session.commit()
