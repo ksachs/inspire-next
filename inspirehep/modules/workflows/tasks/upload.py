@@ -24,6 +24,11 @@
 
 from __future__ import absolute_import, division, print_function
 
+import os
+import itertools
+from pprint import pformat
+
+
 from flask import url_for
 
 from invenio_db import db
@@ -50,10 +55,9 @@ def store_record(obj, eng):
         # Now that we have a recid, we can properly download the documents
         record.download_documents_and_figures(src_records=[obj])
 
-        obj.data['control_number'] = created_pid
-        # store head_uuid to store the root later
-        obj.extra_data['head_uuid'] = str(record.id)
+    # Commit any changes to record
 
+    obj.data['control_number'] = created_pid
     record.commit()
     obj.save()
     db.session.commit()
