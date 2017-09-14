@@ -24,7 +24,9 @@
 
 from __future__ import absolute_import, division, print_function
 
+import json
 import mock
+import os
 
 from invenio_search import current_search_client as es
 from invenio_db import db
@@ -40,6 +42,7 @@ from calls import (
     do_accept_core,
     do_webcoll_callback,
     do_robotupload_callback,
+    do_resolve_conflicts,
     generate_record,
 )
 from mocks import (
@@ -47,12 +50,36 @@ from mocks import (
     fake_beard_api_request,
     fake_magpie_api_request,
 )
+
+
 from utils import get_halted_workflow
+from inspirehep.modules.workflows.tasks.merging import (
+    insert_wf_record_source,
+    _get_match_recid
+)
+from inspirehep.modules.migrator.tasks import record_insert_or_replace
+
+
+def load_json_fixture(test_dir, file_name):
+    base_dir = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(base_dir, test_dir, file_name)) as f:
+        return json.loads(f.read())
 
 
 @mock.patch(
     'inspirehep.modules.workflows.tasks.arxiv.is_pdf_link'
 )
+def run_workflow(mock_is_pdf_link, app, record, extra_config=None):
+    extra_config = extra_config or {}
+    with mock.patch.dict(app.config, extra_config):
+        workflow_uuid = start('article', [record])
+
+    eng = WorkflowEngine.from_uuid(workflow_uuid)
+    obj = eng.processed_objects[0]
+
+    return obj.id
+
+
 @mock.patch(
     'inspirehep.modules.workflows.tasks.arxiv.download_file_to_workflow',
     side_effect=fake_download_file,
@@ -101,7 +128,6 @@ def test_harvesting_arxiv_workflow_manual_rejected(
     obj = eng.processed_objects[0]
     obj_id = obj.id
     obj.continue_workflow()
-
     obj = workflow_object_class.get(obj_id)
     # It was rejected
     assert obj.status == ObjectStatus.COMPLETED
@@ -379,3 +405,47 @@ def test_match_in_holdingpen_different_sources_continues(
     assert obj.extra_data['already-in-holding-pen'] is True
     assert obj.extra_data['stopped-matched-holdingpen-wf'] is False
     assert obj.extra_data['previously_rejected'] is False
+
+
+def test_merge_with_already_existing_article_in_the_db(
+            mocked_download_arxiv,
+            mocked_api_request_beard,
+            mocked_api_request_magpie,
+            workflow_app,
+            mocked_external_services,
+):
+    head = record_insert_or_replace(load_json_fixture('fixtures', 'merger_head.json'))
+    db.session.commit()
+    es.indices.refresh('records-hep')
+
+    insert_wf_record_source(
+        record_uuid=head.id,
+        source='arXiv',
+        json=load_json_fixture('fixtures', 'merger_root.json'),
+    )
+    es.indices.refresh('records-hep')
+    update = load_json_fixture('fixtures', 'merger_update.json')
+
+    obj_id = run_workflow(
+        app=workflow_app,
+        extra_config={
+            'ARXIV_CATEGORIES_ALREADY_HARVESTED_ON_LEGACY': [],
+            'PRODUCTION_MODE': False,
+        },
+        record=update,
+    )
+
+    do_resolve_conflicts(workflow_app, obj_id)
+
+    obj = workflow_object_class.get(obj_id)
+
+    response = do_robotupload_callback(
+        app=workflow_app,
+        workflow_id=obj_id,
+        recids=[_get_match_recid(obj)],
+    )
+
+    assert response.status_code == 200
+    assert obj.status == ObjectStatus.COMPLETED
+    assert obj.extra_data['is-update'] is True
+    assert obj.extra_data['merged'] is True

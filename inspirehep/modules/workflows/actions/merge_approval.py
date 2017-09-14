@@ -32,7 +32,6 @@ class MergeApproval(object):
     @staticmethod
     def resolve(obj, *args, **kwargs):
         """Resolve the action taken in the approval action."""
-
         obj.extra_data["approved"] = True
         obj.extra_data["auto-approved"] = False
         obj.remove_action()

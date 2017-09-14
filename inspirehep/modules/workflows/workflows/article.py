@@ -54,6 +54,12 @@ from inspirehep.modules.workflows.tasks.actions import (
     submission_fulltext_download,
     save_workflow,
 )
+from inspirehep.modules.workflows.tasks.merging import (
+    merge_articles,
+    update_record,
+    put_new_root_in_extra_data,
+    store_root,
+)
 from inspirehep.modules.workflows.tasks.classifier import (
     classify_paper,
     filter_core_keywords,
@@ -72,7 +78,6 @@ from inspirehep.modules.workflows.tasks.matching import (
     holdingpen_match_with_same_source,
     stop_matched_holdingpen_wf,
     is_matched_wf_previously_rejected,
-    delete_self_and_stop_processing
 )
 from inspirehep.modules.workflows.tasks.upload import store_record, set_schema
 from inspirehep.modules.workflows.tasks.submission import (
@@ -181,21 +186,7 @@ ENHANCE_RECORD = [
     guess_coreness,  # ("arxiv_skip_astro_title_abstract.pickle)
     # Check if we shall halt or auto-reject
     # =====================================
-]
-
-
-CHECK_IF_SUBMISSION_AND_ASK_FOR_APPROVAL = [
-    IF_ELSE(
-        is_record_relevant,
-        [halt_record(
-            action="hep_approval",
-            message="Submission halted for curator approval.",
-        )],
-        [
-            reject_record("Article automatically rejected"),
-            stop_processing
-        ]
-    ),
+    put_new_root_in_extra_data,
 ]
 
 
@@ -221,6 +212,7 @@ NOTIFY_ALREADY_EXISTING = [
     mark('stop', True),
     save_workflow,
     stop_processing,
+    mark('stop', True)
 ]
 
 
@@ -274,22 +266,6 @@ SEND_TO_LEGACY_AND_WAIT = [
     ),
 ]
 
-CHECK_IF_MERGE_AND_STOP_IF_SO = [
-    IF(
-        is_marked('is-update'),
-        [
-            IF_ELSE(
-                is_submission,
-                NOTIFY_ALREADY_EXISTING,
-                [
-                    # halt_record(action="merge_approval"),
-                    delete_self_and_stop_processing,
-                ]
-            ),
-        ]
-    )
-]
-
 
 STOP_IF_EXISTING_SUBMISSION = [
     IF(
@@ -323,6 +299,7 @@ HALT_FOR_APPROVAL = [
 
 
 STORE_RECORD = [
+    store_root,
     store_record
 ]
 
@@ -446,6 +423,54 @@ PRE_PROCESSING = [
 ]
 
 
+MERGE_IF_UPDATE = [
+    IF(
+        is_marked('is-update'),
+        [
+            merge_articles,
+            mark('merged', True)
+            # TODO: save record with new non-conflicting merged fields
+        ],
+    ),
+]
+
+
+STOP_IF_EXISTING_SUBMISSION = [
+    IF(
+        is_submission,
+        IF(
+            is_marked('is-update'),
+            NOTIFY_ALREADY_EXISTING
+        )
+    )
+]
+
+
+HALT_FOR_APPROVAL = [
+    IF_ELSE(
+        is_record_relevant,
+        [
+            IF_ELSE(
+                article_exists,
+                halt_record(
+                    action="merge_approval",
+                    message="Submission halted for curator approval.",
+                ),
+                halt_record(
+                    action="hep_approval",
+                    message="Submission halted for curator approval.",
+                ),
+            )
+        ],
+        # record not relevant
+        [
+            reject_record("Article automatically rejected"),
+            stop_processing
+        ]
+    )
+]
+
+
 class Article(object):
     """Article ingestion workflow for Literature collection."""
     name = "HEP"
@@ -460,10 +485,9 @@ class Article(object):
         PROCESS_HOLDINGPEN_MATCH +
         CHECK_IF_UPDATE +
         ENHANCE_RECORD +
-        # TODO: Once we have a way to resolve merges, we should
-        # use that instead of stopping
-        CHECK_IF_MERGE_AND_STOP_IF_SO +
-        CHECK_IF_SUBMISSION_AND_ASK_FOR_APPROVAL +
+        STOP_IF_EXISTING_SUBMISSION +
+        MERGE_IF_UPDATE +
+        HALT_FOR_APPROVAL +
         [
             IF_ELSE(
                 is_record_accepted,

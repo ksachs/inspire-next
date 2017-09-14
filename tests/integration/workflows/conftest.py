@@ -127,5 +127,4 @@ def mocked_external_services(workflow_app):
             status_code=200,
             json={'phonetic_blocks': {}},
         )
-
         yield
