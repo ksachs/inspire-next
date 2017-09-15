@@ -45,7 +45,7 @@ def insert_wf_record_source(json, record_uuid, source):
     Args:
         json(dict): the content of the root
         record_uuid(uuid): the record's uuid to associate with the root
-        source(string): the source og the root
+        source(string): the source of the root
     """
     record_source = read_wf_record_source(record_uuid=record_uuid, source=source)
     if record_source is None:
