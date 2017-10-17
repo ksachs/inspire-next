@@ -44,14 +44,17 @@ class Action(object):
                 new_schema = schema['properties'][key]
             elif schema['type'] == 'array':
                 new_schema = schema['items']['properties'][key]
-
         if self.conditions:
             for condition in self.conditions:
-                if position < len(condition['key']) and key != condition['key'][position]\
-                        and (position == 0 or self.keys[position - 1] == condition['key'][position - 1]):
+                if position < len(condition.get('keys')) and\
+                        (key != condition.get('keys')[position] and
+                            (position == 0 or self.keys[position - 1] == condition.get('keys')[position - 1]) or
+                            (key == condition.get('keys')[position] and position == len(condition.get('keys')) - 1)):
                     # if the main key is different from the condition key for the first time
-                    if not check_value(record=record, keys=condition['key'], value_to_check=condition['value'],
-                                       match_type=condition['match_type'], position=position):
+                    # or the condition is checking the same path that the action is applied
+                    if not check_value(record=record, keys=condition.get('keys'),
+                                       value_to_check=condition.get('value', ''),
+                                       match_type=condition.get('match_type', ''), position=position):
                         condition_failed = True
                     checked = checked + 1  # number of conditions that passed successfully
         return new_schema, checked, key, condition_failed
@@ -244,16 +247,16 @@ def get_actions(user_actions):
     if not user_actions:
         return
 
-    for action in user_actions.get('conditions'):
+    for action in user_actions.get('conditions',[]):
         if not action['key']:
             continue
-        key = action['key'].split('/')
+        keys = action['key'].split('/')
         condition = {'value': action['value'],
-                     'key': key,
+                     'keys': keys,
                      'match_type': action['matchType']}
         conditions.append(condition)
 
-    for user_action in user_actions['actions']:
+    for user_action in user_actions.get('actions', []):
         keys = user_action.get('mainKey').split('/')
         if not keys:
             return

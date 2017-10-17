@@ -49,6 +49,34 @@ def test_addition_root_key(get_schema):
     assert record == expected_map
 
 
+def test_addition_missing_root_key(get_schema):
+    record = {
+    }
+    expected_map = {
+        "_collections": ["Literature"]
+    }
+    add = Addition(keys=['_collections'], value="Literature",
+                   conditions=[{'keys': ["_collections"], 'match_type':"missing"}])
+    add.apply_action(record, get_schema)
+    assert record == expected_map
+
+
+def test_addition_missing_deeper_key(get_schema):
+    record = {
+    }
+    expected_map = {
+        "public_notes": [
+            {
+                "value": "Preliminary results"
+            }
+        ]
+    }
+    add = Addition(keys=['public_notes'], value={"public_notes": [{"value": "Preliminary results"}]},
+                   conditions=[{'keys': ["public_notes", "value"], 'match_type':"missing"}])
+    add.apply_action(record, get_schema)
+    assert record == expected_map
+
+
 def test_addition_root_key_with_deeper_where(get_schema):
     record = {
         "public_notes": [
@@ -74,9 +102,9 @@ def test_addition_root_key_with_deeper_where(get_schema):
         "preprint_date": "2016"
     }
     add = Addition(keys=['preprint_date'],
-                   conditions=[{'key': ['public_notes', 'value'], 'value': 'Preliminary results',
+                   conditions=[{'keys': ['public_notes', 'value'], 'value': 'Preliminary results',
                                 'match_type': 'equal'},
-                               {'key': ['core'], 'value': True, 'match_type': 'equal'}],
+                               {'keys': ['core'], 'value': True, 'match_type': 'equal'}],
                    value="2016")
     add.apply_action(record, get_schema)
     assert record == expected_map
@@ -110,9 +138,9 @@ def test_addition_root_key_with_deeper_where_negative(get_schema):
         ],
     }
     add = Addition(keys=['preprint_date'],
-                   conditions=[{'key': ['public_notes', 'value'], 'value': 'Preliminary results',
+                   conditions=[{'keys': ['public_notes', 'value'], 'value': 'Preliminary results',
                                 'match_type': 'equal'},
-                               {'key': ['core'], 'value': False, 'match_type': 'equal'}],
+                               {'keys': ['core'], 'value': False, 'match_type': 'equal'}],
                    match_type='equal',
                    value="2016")
     add.apply_action(record, get_schema)
@@ -150,9 +178,9 @@ def test_addition_object_with_where(get_schema):
         ],
     }
     add = Addition(keys=['titles'],
-                   conditions=[{'key': ['public_notes', 'value'], 'value': 'Preliminary results',
+                   conditions=[{'keys': ['public_notes', 'value'], 'value': 'Preliminary results',
                                 'match_type': 'equal'},
-                               {'key': ['core'], 'value': True, 'match_type': 'equal'}],
+                               {'keys': ['core'], 'value': True, 'match_type': 'equal'}],
                    value={'title': "success"})
     add.apply_action(record, get_schema)
     assert record == expected_map
@@ -236,7 +264,7 @@ def test_addition_array_with_where():
         "type": "object",
     }
     add = Addition(keys=['key_a', 'key_b'],
-                   conditions=[{'key': ['key_a', 'key_c'],
+                   conditions=[{'keys': ['key_a', 'key_c'],
                                 'match_type': 'equal',
                                 'value':'test'}],
                    value="World")
@@ -302,7 +330,7 @@ def test_addition_array_with_where_regex(get_schema):
         "document_type": ["book"]
     }
     add = Addition(keys=['titles', 'subtitle'],
-                   conditions=[{'key': ['titles', 'title'],
+                   conditions=[{'keys': ['titles', 'title'],
                                 'match_type': 'contains',
                                 'value':'test'}],
                    value="success")
@@ -340,7 +368,7 @@ def test_addition_array_with_where_missing_record():
         "type": "object",
     }
     add = Addition(keys=['key_a', 'key_b'],
-                   conditions=[{'key': ['key_a', 'key_c'],
+                   conditions=[{'keys': ['key_a', 'key_c'],
                                 'match_type': 'equal',
                                 'value':'test'}],
                    value="World")
@@ -394,7 +422,7 @@ def test_addition_object_where(get_schema):
         ]
     }
     add = Addition(keys=['authors', 'affiliations'],
-                   conditions=[{'key': ['authors', 'signature_block'],
+                   conditions=[{'keys': ['authors', 'signature_block'],
                                 'match_type': 'equal',
                                 'value':'BANARo'}],
                    value={"curated_relation": True,
@@ -499,7 +527,7 @@ def test_update_where_array_regex():
 
     update = Update(value_to_check='val',
                     keys=['references', 'reference', 'collaborations'],
-                    conditions=[{'key': ['references', 'reference', 'title', 'title'],
+                    conditions=[{'keys': ['references', 'reference', 'title', 'title'],
                                 'match_type': 'regex',
                                  'value':'test'}],
                     match_type='regex',
@@ -644,7 +672,7 @@ def test_update_check_regex_where(get_schema):
     }
     update = Update(value_to_check='Rome',
                     keys=['authors', 'affiliations', 'value'],
-                    conditions=[{'key': ['authors', 'signature_block'],
+                    conditions=[{'keys': ['authors', 'signature_block'],
                                 'match_type':'equal',
                                  'value':'BANARo'}],
                     match_type='regex',
@@ -711,7 +739,7 @@ def test_update_for_missing_key(get_schema):
     }
     update = Update(value_to_check='Rome',
                     keys=['authors', 'affiliations', 'value'],
-                    conditions=[{'key': ['authors', 'signature_block'],
+                    conditions=[{'keys': ['authors', 'signature_block'],
                                 'match_type':'missing',
                                  'value':None}],
                     match_type='regex',
