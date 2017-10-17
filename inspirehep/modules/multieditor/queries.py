@@ -26,6 +26,7 @@
 """Module for quering in multi record editor used in http://inspirehep.net."""
 
 from __future__ import absolute_import, print_function, division
+
 from ..search import api
 from invenio_records.api import Record
 
