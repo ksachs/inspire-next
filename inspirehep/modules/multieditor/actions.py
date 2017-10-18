@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of INSPIRE.
-# Copyright (C) 2017 CERN.
+# Copyright (C) 2014-2017 CERN.
 #
 # INSPIRE is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,6 +28,22 @@ import re
 class Action(object):
     def __init__(self, keys, value=None, match_type=None, value_to_check=None,
                  conditions=None):
+        """
+        :param keys: path to value
+        :type keys: array(string)
+
+       :param value: value to add or update to
+       :type value: string
+
+       :param match_type: type of matching
+       :type match_type: string
+
+       :param value_to_check: value to replace or delete
+       :type value_to_check: string
+
+       :param conditions: conditions of the action
+       :type conditions: array(object)
+        """
         self.keys = keys
         self.value = value
         self.match_type = match_type
@@ -35,40 +51,40 @@ class Action(object):
         self.conditions = conditions
         self.changed = False
 
-    def progress_keys(self, record, schema, position, checked):
+    def process_keys(self, record, position, conditions_passed):
         key = self.keys[position]
         condition_failed = False
-        new_schema = {}
-        if schema:  # for testing purposes
-            if schema['type'] == 'object':
-                new_schema = schema['properties'][key]
-            elif schema['type'] == 'array':
-                new_schema = schema['items']['properties'][key]
         if self.conditions:
             for condition in self.conditions:
                 if position < len(condition.get('keys')) and\
                         (key != condition.get('keys')[position] and
                             (position == 0 or self.keys[position - 1] == condition.get('keys')[position - 1]) or
-                            (key == condition.get('keys')[position] and position == len(condition.get('keys')) - 1)):
-                    # if the main key is different from the condition key for the first time
-                    # or the condition is checking the same path that the action is applied
+                            (key == condition.get('keys')[position] and position == len(self.keys) - 1)):
+                    # Condition and action key should differ for the first time to be checked
+                    # Or action key is the last on action's path and condition path is the same or extends deeper
                     if not check_value(record=record, keys=condition.get('keys'),
                                        value_to_check=condition.get('value', ''),
                                        match_type=condition.get('match_type', ''), position=position):
                         condition_failed = True
-                    checked = checked + 1  # number of conditions that passed successfully
-        return new_schema, checked, key, condition_failed
+                    conditions_passed = conditions_passed + 1  # number of conditions that passed successfully
+        return conditions_passed, key, condition_failed
 
 
 class Addition(Action):
 
-    def apply_action(self, record, schema, position=0, checked=0):
+    def apply_action(self, record, schema, position=0, conditions_passed=0):
         """Recursive function to add a record object."""
-        new_schema, checked, key, condition_failed = self.progress_keys(record, schema, position, checked)
+        conditions_passed, key, condition_failed = self.process_keys(record, position, conditions_passed)
+        if not schema:
+            return
+        if schema['type'] == 'object':
+            new_schema = schema['properties'][key]
+        elif schema['type'] == 'array':
+            new_schema = schema['items']['properties'][key]
         if condition_failed:  # if the condition check was negative stop the action
             return
         if not record.get(key):
-            if self.conditions and checked < len(self.conditions):
+            if self.conditions and conditions_passed < len(self.conditions):
                 return  # if the conditions that passed are less
                 #  than the total ones the subrecord of the condition is missing and the action wont be applied
             creation_keys = self.keys[position:]
@@ -82,16 +98,16 @@ class Addition(Action):
         else:
             if isinstance(record[key], list):
                 for array_record in record[key]:
-                    self.apply_action(array_record, new_schema, position + 1, checked)
+                    self.apply_action(array_record, new_schema, position + 1, conditions_passed)
             else:
-                self.apply_action(record[key], new_schema, position + 1, checked)
+                self.apply_action(record[key], new_schema, position + 1, conditions_passed)
 
 
 class Deletion(Action):
 
-    def apply_action(self, record, schema, position=0, checked=0):
+    def apply_action(self, record, schema=None, position=0, conditions_passed=0):
         """Recursive function to delete a record primitive key."""
-        new_schema, checked, key, condition_failed = self.progress_keys(record, schema, position, checked)
+        conditions_passed, key, condition_failed = self.process_keys(record, position, conditions_passed)
         if condition_failed:
             return
         if not record.get(key):
@@ -102,13 +118,10 @@ class Deletion(Action):
                         record[key] = filter(lambda x: (not re.search(
                             re.escape(self.value_to_check),
                             x)), record[key])
-
                 elif self.match_type == 'equal':
                     record[key] = filter(lambda x: not x == self.value_to_check, record[key])
-
                 elif self.match_type == 'contains':
                     record[key] = filter(lambda x: self.value_to_check not in x, record[key])
-
             else:
                 if self.match_type == 'equal' and record[key] == self.value_to_check:
                     del record[key]
@@ -119,15 +132,14 @@ class Deletion(Action):
                             del record[key]
                 elif self.match_type == 'contains' and self.value_to_check in record[key]:
                     del record[key]
-
                 self.changed = True
                 return
         else:
             if isinstance(record[key], list):
                 for array_record in record[key]:
-                    self.apply_action(array_record, new_schema, position + 1, checked)
+                    self.apply_action(array_record, schema, position + 1, conditions_passed)
             else:
-                self.apply_action(record[key], new_schema, position + 1, checked)
+                self.apply_action(record[key], schema, position + 1, conditions_passed)
         if isinstance(record[key], list):
             record[key] = [item for item in record[key] if item not in [{}, '', []]]
         if record[key] in [{}, '', []]:
@@ -136,9 +148,9 @@ class Deletion(Action):
 
 class Update(Action):
 
-    def apply_action(self, record, schema, position=0, checked=0):
+    def apply_action(self, record, schema=None, position=0, conditions_passed=0):
         """Recursive function to update a record primitive key."""
-        new_schema, checked, key, condition_failed = self.progress_keys(record, schema, position, checked)
+        conditions_passed, key, condition_failed = self.process_keys(record, position, conditions_passed)
         if condition_failed:
             return
         if not record.get(key):
@@ -170,9 +182,9 @@ class Update(Action):
         else:
             if isinstance(record[key], list):
                 for array_record in record[key]:
-                    self.apply_action(array_record, new_schema, position + 1, checked)
+                    self.apply_action(array_record, schema, position + 1, conditions_passed)
             else:
-                self.apply_action(record[key], new_schema, position + 1, checked)
+                self.apply_action(record[key], schema, position + 1, conditions_passed)
 
 
 def create_schema_record(schema, path, value):
@@ -247,10 +259,10 @@ def get_actions(user_actions):
     if not user_actions:
         return
 
-    for action in user_actions.get('conditions',[]):
-        if not action['key']:
+    for action in user_actions.get('conditions', []):
+        if not action['keys']:
             continue
-        keys = action['key'].split('/')
+        keys = action['keys'].split('/')
         condition = {'value': action['value'],
                      'keys': keys,
                      'match_type': action['matchType']}

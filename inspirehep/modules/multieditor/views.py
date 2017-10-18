@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of INSPIRE.
-# Copyright (C) 2017 CERN.
+# Copyright (C) 2014-2017 CERN.
 #
 # INSPIRE is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -56,7 +56,7 @@ def update():
     for i, chunk in enumerate(chunker(ids, 20)):
         tasks.process_records.delay(records_ids=chunk, user_actions=user_actions, schema=schema)
 
-    return 'success'
+    return jsonify({'message': 'Records have been updated successfully'})
 
 
 @blueprint.route("/preview", methods=['POST'])

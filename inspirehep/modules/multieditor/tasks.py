@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of INSPIRE.
-# Copyright (C) 2017 CERN.
+# Copyright (C) 2014-2017 CERN.
 #
 # INSPIRE is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,8 +38,8 @@ def process_records(records_ids, user_actions, schema):
     class_actions = get_actions(user_actions)
     for record in records:
         for class_action in class_actions:
-            class_action.apply_action(record, schema)
-            if class_action.changed:  # if the record has been touched commit it and reset value
+            class_action.apply_action(record=record, schema=schema)
+            if class_action.changed:
                 commit_record = True
                 class_action.changed = False
         if commit_record:

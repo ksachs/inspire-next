@@ -39,6 +39,7 @@ def get_schema():
 
 
 def test_addition_root_key(get_schema):
+    """Should test adding a root primitive key"""
     record = {
     }
     expected_map = {
@@ -50,6 +51,7 @@ def test_addition_root_key(get_schema):
 
 
 def test_addition_missing_root_key(get_schema):
+    """Should test adding an object with same condition key"""
     record = {
     }
     expected_map = {
@@ -62,6 +64,7 @@ def test_addition_missing_root_key(get_schema):
 
 
 def test_addition_missing_deeper_key(get_schema):
+    """Should test adding an object with condition on a deep key"""
     record = {
     }
     expected_map = {
@@ -71,13 +74,14 @@ def test_addition_missing_deeper_key(get_schema):
             }
         ]
     }
-    add = Addition(keys=['public_notes'], value={"public_notes": [{"value": "Preliminary results"}]},
+    add = Addition(keys=['public_notes'], value={"value": "Preliminary results"},
                    conditions=[{'keys': ["public_notes", "value"], 'match_type':"missing"}])
     add.apply_action(record, get_schema)
     assert record == expected_map
 
 
-def test_addition_root_key_with_deeper_where(get_schema):
+def test_addition_root_key_with_deeper_condition(get_schema):
+    """Should test adding an object with missing condition key"""
     record = {
         "public_notes": [
             {
@@ -110,7 +114,8 @@ def test_addition_root_key_with_deeper_where(get_schema):
     assert record == expected_map
 
 
-def test_addition_root_key_with_deeper_where_negative(get_schema):
+def test_addition_root_key_with_deeper_condition_negative(get_schema):
+    """Should test adding an object with negative condition"""
     record = {
         "public_notes": [
             {
@@ -147,7 +152,8 @@ def test_addition_root_key_with_deeper_where_negative(get_schema):
     assert record == expected_map
 
 
-def test_addition_object_with_where(get_schema):
+def test_addition_object_with_condition(get_schema):
+    """Should test adding an object with condition"""
     record = {
         "public_notes": [
             {
@@ -224,8 +230,8 @@ def test_addition_object():
     assert record == expected_map
 
 
-def test_addition_array_with_where():
-    """should test record addition for object using where check"""
+def test_addition_array_with_condition():
+    """should test record addition for object using condition check"""
     record = {
         'key_a': {
             'key_b': ['Hello'],
@@ -303,7 +309,7 @@ def test_addition_array(get_schema):
     assert record == expected_map
 
 
-def test_addition_array_with_where_regex(get_schema):
+def test_addition_array_with_condition_regex(get_schema):
     """should test record addition for nested array"""
     record = {
         "titles": [
@@ -338,7 +344,7 @@ def test_addition_array_with_where_regex(get_schema):
     assert record == expected_map
 
 
-def test_addition_array_with_where_missing_record():
+def test_addition_array_with_condition_missing_record():
     """should test record addition for nested array"""
     record = {}
 
@@ -376,7 +382,7 @@ def test_addition_array_with_where_missing_record():
     assert record == expected_map
 
 
-def test_addition_object_where(get_schema):
+def test_addition_object_condition(get_schema):
     record = {
         "authors": [
             {
@@ -450,7 +456,7 @@ def test_deletion_array():
     delete = Deletion(value_to_check='val6',
                       keys=['key_a', 'key_c'],
                       match_type='equal')
-    delete.apply_action(record, {})
+    delete.apply_action(record)
     assert record == expected_map
 
 
@@ -470,7 +476,7 @@ def test_deletion_array_regex():
     delete = Deletion(value_to_check='val',
                       keys=['key_a', 'key_c'],
                       match_type='contains')
-    delete.apply_action(record, {})
+    delete.apply_action(record)
     assert record == expected_map
 
 
@@ -486,7 +492,7 @@ def test_deletion_empty_rec():
     delete = Deletion(value_to_check='val',
                       keys=['key1', 'key2', 'key3'],
                       match_type='equal')
-    delete.apply_action(record, {})
+    delete.apply_action(record)
     assert record == expected_map
 
 
@@ -510,11 +516,11 @@ def test_update_array():
                     keys=['key_a', 'key_c'],
                     match_type='equal',
                     value="success")
-    update.apply_action(record, {})
+    update.apply_action(record)
     assert record == expected_map
 
 
-def test_update_where_array_regex():
+def test_update_condition_array_regex():
     """should test action for nested complex array and multiple check values"""
     record = {
         'references': [{'reference': {'collaborations': ['val5', 'tes4'], 'title':{'title': 'test'}}},
@@ -532,7 +538,7 @@ def test_update_where_array_regex():
                                  'value':'test'}],
                     match_type='regex',
                     value="success")
-    update.apply_action(record, {})
+    update.apply_action(record)
     assert record == expected_map
 
 
@@ -544,7 +550,7 @@ def test_record_creation_field_not_existing():
                     value_to_check='success',
                     match_type='equal',
                     value="failure")
-    update.apply_action(record, {})
+    update.apply_action(record)
     assert record == expected_map
 
 
@@ -608,11 +614,11 @@ def test_update_with_missing_keys():
                     keys=['abstracts', 'source'],
                     value="success",
                     match_type='equal')
-    update.apply_action(record, {})
+    update.apply_action(record)
     assert record == expected_map
 
 
-def test_update_check_regex_where(get_schema):
+def test_update_check_regex_condition():
     record = {
         "authors": [
             {
@@ -677,11 +683,11 @@ def test_update_check_regex_where(get_schema):
                                  'value':'BANARo'}],
                     match_type='regex',
                     value="Success")
-    update.apply_action(record, get_schema)
+    update.apply_action(record)
     assert record == expected_map
 
 
-def test_update_for_missing_key(get_schema):
+def test_update_for_missing_key():
     record = {
         "authors": [
             {
@@ -744,5 +750,5 @@ def test_update_for_missing_key(get_schema):
                                  'value':None}],
                     match_type='regex',
                     value="Success")
-    update.apply_action(record, get_schema)
+    update.apply_action(record)
     assert record == expected_map

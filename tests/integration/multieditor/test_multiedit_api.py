@@ -84,7 +84,7 @@ def test_multieditor_update_api(api_client, app_client):
                 ],
                 'conditions': [
                     {
-                        'key': 'authors/full_name',
+                        'keys': 'authors/full_name',
                         'matchType': 'equal',
                         'value': 'success'
                     }
