@@ -43,7 +43,7 @@ def test_multieditor_update_api(api_client, app_client):
             'userActions': {
                 'actions': [{
                     'actionName': 'Addition', 'value': {'full_name': 'success'},
-                    'matchType': 'equal',
+                    'matchType': 'exact',
                     'mainKey': 'authors'
                 }],
                 'conditions': [],
@@ -66,26 +66,26 @@ def test_multieditor_update_api(api_client, app_client):
                     {
                         'actionName': 'Deletion',
                         'updateValue': 'SAC',
-                        'matchType': 'equal',
+                        'matchType': 'exact',
                         'mainKey': 'authors/signature_block',
                     },
                     {
                         'actionName': 'Deletion',
                         'updateValue': uuid_to_delete,
-                        'matchType': 'equal',
+                        'matchType': 'exact',
                         'mainKey': 'authors/uuid',
                     },
                     {
                         'actionName': 'Deletion',
                         'updateValue': 'success',
-                        'matchType': 'equal',
+                        'matchType': 'exact',
                         'mainKey': 'authors/full_name',
                     }
                 ],
                 'conditions': [
                     {
                         'keys': 'authors/full_name',
-                        'matchType': 'equal',
+                        'matchType': 'exact',
                         'value': 'success'
                     }
                 ]

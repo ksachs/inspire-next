@@ -116,19 +116,17 @@ class Deletion(Action):
             if isinstance(record[key], list):
                 if self.match_type == 'regex':
                         record[key] = filter(lambda x: (not re.search(
-                            re.escape(self.value_to_check),
-                            x)), record[key])
-                elif self.match_type == 'equal':
+                            self.value_to_check, x)), record[key])
+                elif self.match_type == 'exact':
                     record[key] = filter(lambda x: not x == self.value_to_check, record[key])
                 elif self.match_type == 'contains':
                     record[key] = filter(lambda x: self.value_to_check not in x, record[key])
             else:
-                if self.match_type == 'equal' and record[key] == self.value_to_check:
+                if self.match_type == 'exact' and record[key] == self.value_to_check:
                     del record[key]
 
                 elif self.match_type == 'regex' and re.search(
-                        re.escape(self.value_to_check),
-                        record[key]):
+                        self.value_to_check, record[key]):
                             del record[key]
                 elif self.match_type == 'contains' and self.value_to_check in record[key]:
                     del record[key]
@@ -159,21 +157,19 @@ class Update(Action):
             if isinstance(record[key], list):
                 if self.match_type == 'regex':
                     record[key] = [self.value if re.search(
-                        re.escape(self.value_to_check),
-                        x) else x for x in record[key]]
+                        self.value_to_check, x) else x for x in record[key]]
 
-                elif self.match_type == 'equal':
+                elif self.match_type == 'exact':
                     record[key] = [self.value if x == self.value_to_check else x for x in record[key]]
 
                 elif self.match_type == 'contains':
                     record[key] = [self.value if self.value_to_check in x else x for x in record[key]]
                 self.changed = True
             else:
-                if self.match_type == 'equal' and record[key] == self.value_to_check:
+                if self.match_type == 'exact' and record[key] == self.value_to_check:
                     record[key] = self.value
                 if self.match_type == 'regex' and re.search(
-                        re.escape(self.value_to_check),
-                        record[key]):
+                        self.value_to_check, record[key]):
                             record[key] = self.value
                 elif self.match_type == 'contains' and self.value_to_check in record[key]:
                     record[key] = self.value
@@ -225,13 +221,12 @@ def check_value(record, match_type, keys, value_to_check, position):
     if isinstance(temp_record, list):
         for index, array_record in enumerate(temp_record):
             if position + 1 == len(keys):
-                if match_type == 'equal' and array_record == value_to_check:
+                if match_type == 'exact' and array_record == value_to_check:
                     return True
                 elif match_type == 'contains' and value_to_check in array_record:
                     return True
                 elif match_type == 'regex'and re.search(
-                        re.escape(value_to_check),
-                        array_record):
+                        value_to_check, array_record):
                         return True
             else:
                 if check_value(array_record, match_type,
@@ -239,13 +234,12 @@ def check_value(record, match_type, keys, value_to_check, position):
                     return True
     else:
         if position + 1 == len(keys):
-            if match_type == 'equal' and temp_record == value_to_check:
+            if match_type == 'exact' and temp_record == value_to_check:
                 return True
             elif match_type == 'contains' and value_to_check in temp_record:
                 return True
             elif match_type == 'regex' and re.search(
-                    re.escape(value_to_check),
-                    temp_record):
+                    value_to_check, temp_record):
                 return True
         else:
             return check_value(temp_record, match_type,

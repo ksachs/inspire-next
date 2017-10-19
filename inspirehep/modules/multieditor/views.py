@@ -70,6 +70,8 @@ def preview():
     searched_records = session.get('multieditor_searched_records', [])
     if searched_records:
         index = searched_records['schema']
+    else:
+        return jsonify({'response_text': 'Please use the search before you apply actions'})
     schema = load_resolved_schema(index)
     records = queries.get_records_from_query(query_string, page_size, page_num, index)['json_records']
     actions.process_records_no_db(user_actions, records, schema)
@@ -90,8 +92,11 @@ def search():
     page_num = int(request.args.get('pageNum', 1))
     page_size = int(request.args.get('pageSize', 1))
     index = request.args.get('index', '')
+    paginated_records = queries.get_records_from_query(query_string, page_size, page_num, index)
+    if paginated_records['total_records'] > 10000:
+        return jsonify({'response_text': 'Please narrow the results using a more specific search'})
     session['multieditor_searched_records'] = {
         'ids': queries.get_record_ids_from_query(query_string, index),
         'schema': index
     }
-    return jsonify(queries.get_records_from_query(query_string, page_size, page_num, index))
+    return jsonify(paginated_records)
