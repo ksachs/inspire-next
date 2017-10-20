@@ -254,7 +254,7 @@ def get_actions(user_actions):
         return
 
     for action in user_actions.get('conditions', []):
-        if not action['keys']:
+        if not action.get('keys'):
             continue
         keys = action['keys'].split('/')
         condition = {'value': action['value'],
@@ -263,6 +263,8 @@ def get_actions(user_actions):
         conditions.append(condition)
 
     for user_action in user_actions.get('actions', []):
+        if not user_action.get('mainKey'):
+            continue
         keys = user_action.get('mainKey').split('/')
         if not keys:
             return

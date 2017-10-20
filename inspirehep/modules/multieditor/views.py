@@ -78,7 +78,7 @@ def preview():
     for record in records:
         try:
             validate(record, schema)
-        except ValidationError as e:
+        except (ValidationError, Exception) as e:
             errors.append(e.message)
         else:
             errors.append(None)
