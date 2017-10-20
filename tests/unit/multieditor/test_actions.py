@@ -567,6 +567,14 @@ def test_record_creation():
     assert create_schema_record(schema_2, key, value) == target_object
 
 
+def test_record_creation_complex(get_schema):
+    """should test sub_record creation for missing object"""
+    key = ['authors', 'affiliations', 'value']
+    value = 'success'
+    target_object = {'authors': [{'affiliations': [{'value': 'success'}]}]}
+    assert create_schema_record(get_schema, key, value) == target_object
+
+
 def test_record_creation_array(get_schema):
     """should test sub_record creation for missing object"""
     key = ['authors']
