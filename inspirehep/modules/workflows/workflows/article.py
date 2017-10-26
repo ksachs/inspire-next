@@ -27,7 +27,6 @@ from __future__ import absolute_import, division, print_function
 from workflow.patterns.controlflow import (
     IF,
     IF_ELSE,
-    IF_NOT,
 )
 
 from inspire_dojson.hep import hep2marc
@@ -43,7 +42,6 @@ from inspirehep.modules.workflows.tasks.actions import (
     add_core,
     halt_record,
     is_record_relevant,
-    in_production_mode,
     is_record_accepted,
     reject_record,
     is_experimental_paper,
@@ -54,6 +52,7 @@ from inspirehep.modules.workflows.tasks.actions import (
     prepare_update_payload,
     refextract,
     submission_fulltext_download,
+    save_workflow,
 )
 from inspirehep.modules.workflows.tasks.classifier import (
     classify_paper,
@@ -66,13 +65,15 @@ from inspirehep.modules.workflows.tasks.magpie import (
     guess_experiments,
 )
 from inspirehep.modules.workflows.tasks.matching import (
-    delete_self_and_stop_processing,
     stop_processing,
     pending_in_holding_pen,
     article_exists,
     already_harvested,
     previously_rejected,
-    update_existing_workflow_object,
+    holdingpen_match_with_same_source,
+    stop_matched_holdingpen_wf,
+    is_matched_wf_previously_rejected,
+    delete_self_and_stop_processing
 )
 from inspirehep.modules.workflows.tasks.upload import store_record, set_schema
 from inspirehep.modules.workflows.tasks.submission import (
@@ -148,24 +149,6 @@ ADD_INGESTION_MARKS = [
                 ]
             ),
         ]
-    ),
-]
-
-
-DELETE_AND_STOP_IF_NEEDED = [
-    IF(
-        is_marked('delete'),
-        [
-            update_existing_workflow_object,
-            # TODO: Wen we get to fix refextract, we can remove the
-            # following step as the references will be good enough to
-            # trust
-            delete_self_and_stop_processing
-        ]
-    ),
-    IF(
-        is_marked('stop'),
-        [stop_processing]
     ),
 ]
 
@@ -319,26 +302,112 @@ CHECK_IF_MERGE_AND_STOP_IF_SO = [
 ]
 
 
-ADD_MARKS = [
+STOP_IF_EXISTING_SUBMISSION = [
     IF(
-        article_exists,
+        is_submission,
+        IF(
+            is_marked('is-update'),
+            NOTIFY_ALREADY_EXISTING
+        )
+    )
+]
+
+
+HALT_FOR_APPROVAL = [
+    IF_ELSE(
+        is_record_relevant,
         [
-            mark('is-update', True),
+            halt_record(
+                action="hep_approval",
+                message="Submission halted for curator approval.",
+            )
         ],
-    ),
+        # record not relevant
+        [
+            reject_record("Article automatically rejected"),
+            stop_processing
+        ]
+    )
+]
+
+
+STORE_RECORD = [
+    store_record
+]
+
+
+CHECK_ALREADY_IN_HOLDINGPEN = [
     IF(
         pending_in_holding_pen,
+        mark('already-in-holding-pen', True)
+    )
+]
+
+
+PROCESS_HOLDINGPEN_MATCH = [
+    IF(
+        is_marked('already-in-holding-pen'),
+        IF(
+            holdingpen_match_with_same_source,
+            [  # same source: stop if rejected or delete the matched one
+                IF_ELSE(
+                    is_matched_wf_previously_rejected,
+                    [
+                        mark('previously_rejected', True),
+                        stop_processing
+                    ],
+                    [
+                        stop_matched_holdingpen_wf,
+                        mark('stopped-matched-holdingpen-wf', True)
+                    ]
+                )
+            ]
+            # different source, continue with matching on DB
+        )
+    )
+]
+
+
+CHECK_IF_UPDATE = [
+    IF(
+        article_exists,
+        mark('is-update', True),
+    )
+]
+
+
+STOP_IF_ALREADY_HARVESTED = [
+    IF(
+        already_harvested,
         [
-            mark('already-in-holding-pen', True),
-        ],
-    ),
-    IF_ELSE(
+            mark('already-ingested', True),
+            stop_processing
+        ]
+    )
+]
+
+
+NOTIFY_IF_SUBMISSION = [
+    IF(
         is_submission,
         NOTIFY_SUBMISSION,
-        (
-            ADD_INGESTION_MARKS
-        )
-    ),
+    )
+]
+
+
+INIT_MARKS = [
+    mark('already-ingested', False),
+    mark('already-in-holding-pen', False),
+    mark('previously_rejected', False),
+    mark('is-update', False),
+    mark('stopped-matched-holdingpen-wf', False)
+]
+
+
+PRE_PROCESSING = [
+    # Make sure schema is set for proper indexing in Holding Pen
+    set_schema,
+    INIT_MARKS,
 ]
 
 
@@ -348,12 +417,13 @@ class Article(object):
     data_type = "hep"
 
     workflow = (
-        [
-            # Make sure schema is set for proper indexing in Holding Pen
-            set_schema,
-        ] +
-        ADD_MARKS +
-        DELETE_AND_STOP_IF_NEEDED +
+        PRE_PROCESSING +
+        [save_workflow] +
+        STOP_IF_ALREADY_HARVESTED +
+        NOTIFY_IF_SUBMISSION +
+        CHECK_ALREADY_IN_HOLDINGPEN +
+        PROCESS_HOLDINGPEN_MATCH +
+        CHECK_IF_UPDATE +
         ENHANCE_RECORD +
         # TODO: Once we have a way to resolve merges, we should
         # use that instead of stopping
@@ -364,14 +434,9 @@ class Article(object):
                 is_record_accepted,
                 (
                     POSTENHANCE_RECORD +
+                    STORE_RECORD +
                     SEND_TO_LEGACY_AND_WAIT +
-                    NOTIFY_USER_OR_CURATOR +
-                    [
-                        # TODO: once legacy is out, this should become
-                        # unconditional, and remove the SEND_TO_LEGACY_AND_WAIT
-                        # steps
-                        IF_NOT(in_production_mode, [store_record]),
-                    ]
+                    NOTIFY_USER_OR_CURATOR
                 ),
                 NOTIFY_NOT_ACCEPTED,
             ),

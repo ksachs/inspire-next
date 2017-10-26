@@ -52,6 +52,7 @@ def mark(key, value):
     @wraps(mark)
     def _mark(obj, eng):
         obj.extra_data[key] = value
+        obj.save()
 
     _mark.__doc__ = 'Mark the workflow object with %s:%s.' % (key, value)
     return _mark
@@ -285,3 +286,7 @@ def refextract(obj, eng):
     elif len(text_references) > len(pdf_references):
         obj.log.info('Extracted %d references from text.', len(text_references))
         obj.data['references'] = text_references
+
+
+def save_workflow(obj, eng):
+    obj.save()

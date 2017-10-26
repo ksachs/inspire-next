@@ -30,12 +30,13 @@ from functools import wraps
 from flask import current_app
 
 from invenio_db import db
-from invenio_workflows import workflow_object_class
+from invenio_workflows import workflow_object_class, WorkflowEngine
 
 from inspire_matcher.api import match
 from inspire_utils.dedupers import dedupe_list
 from inspirehep.utils.datefilter import date_older_than
-from inspirehep.utils.record import get_arxiv_categories, get_arxiv_id
+from inspirehep.utils.record import get_arxiv_categories, get_arxiv_id, get_value
+from inspirehep.modules.workflows.tasks.actions import mark
 
 from ..utils import with_debug_logging
 
@@ -209,7 +210,7 @@ def delete_self_and_stop_processing(obj, eng):
 @with_debug_logging
 def stop_processing(obj, eng):
     """Stop processing for object and return as completed."""
-    eng.stopProcessing()
+    eng.stop()
 
 
 @with_debug_logging
@@ -235,3 +236,30 @@ def update_existing_workflow_object(obj, eng):
         msg = "Cannot update old object, non valid ids: %s"
         obj.log.error(msg, holdingpen_ids)
         raise Exception(msg % holdingpen_ids)
+
+
+def holdingpen_match_with_same_source(obj, eng):
+    pending_wf = obj.extra_data['holdingpen_matches'][0]
+    matched_wf = workflow_object_class.get(pending_wf)
+    update_source = get_value(matched_wf.data, 'acquisition_source.source').lower()
+
+    current_source = get_value(obj.data, 'acquisition_source.source').lower()
+    return current_source == update_source
+
+
+def stop_matched_holdingpen_wf(obj, eng):
+    holdingpen_wf_id = obj.extra_data['holdingpen_matches'][0]
+
+    holdingpen_wf = workflow_object_class.get(holdingpen_wf_id)
+    holdingpen_wf_eng = WorkflowEngine.from_uuid(holdingpen_wf.id_workflow)
+    mark('stopped-by-wf', str(obj.id))(holdingpen_wf, holdingpen_wf_eng)
+
+    # stop this holdingpen workflow by replacing its steps with a stop step
+    holdingpen_wf_eng.callbacks.replace([stop_processing])
+    holdingpen_wf_eng.process([holdingpen_wf])
+
+
+def is_matched_wf_previously_rejected(obj, eng):
+    pending_wf_id = obj.extra_data['holdingpen_matches'][0]
+    pending_wf = workflow_object_class.get(pending_wf_id)
+    return pending_wf.extra_data.get('approved') is False
