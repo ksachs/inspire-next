@@ -190,5 +190,3 @@ def convert(xml, xslt_filename):
     transform = ET.XSLT(xslt)
     newdom = transform(dom)
     return ET.tostring(newdom, pretty_print=False)
-
-
