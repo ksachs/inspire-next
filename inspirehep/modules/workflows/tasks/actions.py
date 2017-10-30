@@ -30,6 +30,8 @@ from flask import current_app
 from werkzeug import secure_filename
 from timeout_decorator import TimeoutError
 
+from invenio_db import db
+
 from inspire_schemas.builders import LiteratureBuilder
 from inspire_utils.record import get_value
 from inspirehep.modules.workflows.utils import (
@@ -290,3 +292,4 @@ def refextract(obj, eng):
 
 def save_workflow(obj, eng):
     obj.save()
+    db.session.commit()
