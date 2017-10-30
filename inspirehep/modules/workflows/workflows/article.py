@@ -40,6 +40,7 @@ from inspirehep.modules.workflows.tasks.arxiv import (
 )
 from inspirehep.modules.workflows.tasks.actions import (
     add_core,
+    error_workflow,
     halt_record,
     is_record_relevant,
     is_record_accepted,
@@ -344,25 +345,61 @@ CHECK_ALREADY_IN_HOLDINGPEN = [
 ]
 
 
+ERROR_WITH_UNEXPECTED_WORKFLOW_PATH = [
+    mark('unexpected-workflow-path', True),
+    error_workflow('Unexpected workflow path.')
+]
+
+
+# Currently we handle harvests as if all were arxiv, that will have to change.
+PROCESS_HOLDINGPEN_MATCH_ARXIV = [
+    holdingpen_match_with_same_source,
+    [
+        IF_ELSE(
+            is_matched_wf_previously_rejected,
+            [
+                mark('previously_rejected', True),
+                stop_processing
+            ],
+            [
+                stop_matched_holdingpen_wf,
+                mark('stopped-matched-holdingpen-wf', True)
+            ]
+        )
+    ]
+]
+
+
+PROCESS_HOLDINGPEN_MATCH_SUBMISSION = [
+    IF_ELSE(
+        is_matched_wf_previously_rejected,
+        mark('previously_rejected', True),
+        IF_ELSE(
+            holdingpen_match_with_same_source,
+            # this should have been caught by the form, it's a double
+            # submission.
+            ERROR_WITH_UNEXPECTED_WORKFLOW_PATH,
+            [
+                stop_matched_holdingpen_wf,
+                mark('stopped-matched-holdingpen-wf', True)
+            ],
+        )
+    )
+]
+
+
 PROCESS_HOLDINGPEN_MATCH = [
     IF(
         is_marked('already-in-holding-pen'),
-        IF(
-            holdingpen_match_with_same_source,
-            [  # same source: stop if rejected or delete the matched one
-                IF_ELSE(
-                    is_matched_wf_previously_rejected,
-                    [
-                        mark('previously_rejected', True),
-                        stop_processing
-                    ],
-                    [
-                        stop_matched_holdingpen_wf,
-                        mark('stopped-matched-holdingpen-wf', True)
-                    ]
-                )
-            ]
-            # different source, continue with matching on DB
+        IF_ELSE(
+            is_submission,
+            PROCESS_HOLDINGPEN_MATCH_SUBMISSION,
+            IF_ELSE(
+                is_arxiv_paper,
+                PROCESS_HOLDINGPEN_MATCH_ARXIV,
+                # We don't handle yet publisher harvests
+                ERROR_WITH_UNEXPECTED_WORKFLOW_PATH,
+            ),
         )
     )
 ]

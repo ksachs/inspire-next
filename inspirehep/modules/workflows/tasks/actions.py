@@ -31,6 +31,7 @@ from werkzeug import secure_filename
 from timeout_decorator import TimeoutError
 
 from invenio_db import db
+from invenio_workflows import ObjectStatus
 
 from inspire_schemas.builders import LiteratureBuilder
 from inspire_utils.record import get_value
@@ -286,10 +287,30 @@ def refextract(obj, eng):
         obj.log.info('Extracted %d references from PDF.', len(pdf_references))
         obj.data['references'] = pdf_references
     elif len(text_references) > len(pdf_references):
-        obj.log.info('Extracted %d references from text.', len(text_references))
+        obj.log.info(
+            'Extracted %d references from text.',
+            len(text_references),
+        )
         obj.data['references'] = text_references
 
 
 def save_workflow(obj, eng):
     obj.save()
     db.session.commit()
+
+
+def error_workflow(message):
+    """Force an error in the workflow with the given message."""
+    @with_debug_logging
+    @wraps(error_workflow)
+    def _error_workflow(obj, eng):
+        obj.log.error(message)
+        obj.extra_data['_error_message'] = message
+        obj.status = ObjectStatus.ERROR
+        obj.save()
+
+    _error_workflow.__doc__ = (
+        'Force an error in the workflow object with the message "%s".'
+        % message
+    )
+    return _error_workflow
