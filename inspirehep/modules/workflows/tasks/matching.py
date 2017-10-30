@@ -252,10 +252,12 @@ def stop_matched_holdingpen_wf(obj, eng):
 
     holdingpen_wf = workflow_object_class.get(holdingpen_wf_id)
     holdingpen_wf_eng = WorkflowEngine.from_uuid(holdingpen_wf.id_workflow)
-    mark('stopped-by-wf', str(obj.id))(holdingpen_wf, holdingpen_wf_eng)
 
     # stop this holdingpen workflow by replacing its steps with a stop step
-    holdingpen_wf_eng.callbacks.replace([stop_processing])
+    holdingpen_wf_eng.callbacks.replace([
+        mark('stopped-by-wf', str(obj.id)),
+        stop_processing,
+    ])
     holdingpen_wf_eng.process([holdingpen_wf])
 
 
