@@ -331,7 +331,7 @@ HALT_FOR_APPROVAL = [
             reject_record("Article automatically rejected"),
             mark('approved', False),
             save_workflow,
-            stop_processing
+            stop_processing,
         ]
     )
 ]
@@ -358,22 +358,24 @@ ERROR_WITH_UNEXPECTED_WORKFLOW_PATH = [
 
 # Currently we handle harvests as if all were arxiv, that will have to change.
 PROCESS_HOLDINGPEN_MATCH_ARXIV = [
-    holdingpen_match_with_same_source,
-    [
-        IF_ELSE(
-            is_matched_wf_previously_rejected,
-            [
-                mark('previously_rejected', True),
-                mark('approved', False)
-                save_workflow,
-                stop_processing
-            ],
-            [
-                stop_matched_holdingpen_wf,
-                mark('stopped-matched-holdingpen-wf', True)
-            ]
-        )
-    ]
+    IF(
+        holdingpen_match_with_same_source,
+        [
+            IF_ELSE(
+                is_matched_wf_previously_rejected,
+                [
+                    mark('previously_rejected', True),
+                    mark('approved', False),
+                    save_workflow,
+                    stop_processing,
+                ],
+                [
+                    stop_matched_holdingpen_wf,
+                    mark('stopped-matched-holdingpen-wf', True)
+                ]
+            )
+        ],
+    )
 ]
 
 
