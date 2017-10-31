@@ -230,6 +230,8 @@ NOTIFY_ALREADY_EXISTING = [
         context_factory=reply_ticket_context
     ),
     close_ticket(ticket_id_key="ticket_id"),
+    mark('stop', True),
+    save_workflow,
     stop_processing,
 ]
 
@@ -326,6 +328,7 @@ HALT_FOR_APPROVAL = [
         # record not relevant
         [
             reject_record("Article automatically rejected"),
+            save_workflow,
             stop_processing
         ]
     )
@@ -359,6 +362,7 @@ PROCESS_HOLDINGPEN_MATCH_ARXIV = [
             is_matched_wf_previously_rejected,
             [
                 mark('previously_rejected', True),
+                save_workflow,
                 stop_processing
             ],
             [
@@ -418,6 +422,7 @@ STOP_IF_ALREADY_HARVESTED = [
         already_harvested,
         [
             mark('already-ingested', True),
+            save_workflow,
             stop_processing
         ]
     )
