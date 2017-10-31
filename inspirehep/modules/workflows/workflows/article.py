@@ -222,6 +222,7 @@ NOTIFY_NOT_ACCEPTED = [
 
 NOTIFY_ALREADY_EXISTING = [
     reject_record('Article was already found on INSPIRE'),
+    mark('approved', False),
     reply_ticket(
         template=(
             "literaturesuggest/tickets/"
@@ -328,6 +329,7 @@ HALT_FOR_APPROVAL = [
         # record not relevant
         [
             reject_record("Article automatically rejected"),
+            mark('approved', False),
             save_workflow,
             stop_processing
         ]
@@ -362,6 +364,7 @@ PROCESS_HOLDINGPEN_MATCH_ARXIV = [
             is_matched_wf_previously_rejected,
             [
                 mark('previously_rejected', True),
+                mark('approved', False)
                 save_workflow,
                 stop_processing
             ],
@@ -377,7 +380,10 @@ PROCESS_HOLDINGPEN_MATCH_ARXIV = [
 PROCESS_HOLDINGPEN_MATCH_SUBMISSION = [
     IF_ELSE(
         is_matched_wf_previously_rejected,
-        mark('previously_rejected', True),
+        [
+            mark('previously_rejected', True),
+            mark('approved', False),
+        ],
         IF_ELSE(
             holdingpen_match_with_same_source,
             # this should have been caught by the form, it's a double
