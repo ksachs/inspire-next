@@ -332,7 +332,6 @@ def test_match_in_holdingpen_previously_rejected_wf_stop(
     assert obj.status == ObjectStatus.COMPLETED
     assert obj.extra_data['already-in-holding-pen'] is True
     assert obj.extra_data['previously_rejected'] is True
-    assert obj.extra_data['is-update'] is True
 
 
 @mock.patch(
