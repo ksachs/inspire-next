@@ -300,8 +300,8 @@ HALT_FOR_APPROVAL = [
 
 
 STORE_RECORD = [
+    store_record,
     store_root,
-    store_record
 ]
 
 

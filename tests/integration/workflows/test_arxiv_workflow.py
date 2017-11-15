@@ -27,6 +27,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import mock
 import os
+import StringIO
 
 from invenio_search import current_search_client as es
 from invenio_db import db
@@ -376,6 +377,7 @@ def test_match_in_holdingpen_previously_rejected_wf_stop(
     side_effect=fake_magpie_api_request,
 )
 def test_match_in_holdingpen_different_sources_continues(
+    mocked_attached_file,
     mocked_download_arxiv,
     mocked_api_request_beard,
     mocked_api_request_magpie,
@@ -406,12 +408,28 @@ def test_match_in_holdingpen_different_sources_continues(
     assert obj.extra_data['previously_rejected'] is False
 
 
+@mock.patch(
+    'inspirehep.modules.workflows.tasks.arxiv.is_pdf_link',
+    return_value=True
+)
+@mock.patch(
+    'inspirehep.modules.workflows.tasks.arxiv.download_file_to_workflow',
+    side_effect=fake_download_file,
+)
+@mock.patch(
+    'inspirehep.modules.workflows.tasks.beard.json_api_request',
+    side_effect=fake_beard_api_request,
+)
+@mock.patch(
+    'inspirehep.modules.workflows.tasks.magpie.json_api_request',
+    side_effect=fake_magpie_api_request,
+)
 def test_merge_with_already_existing_article_in_the_db(
-            mocked_download_arxiv,
-            mocked_api_request_beard,
-            mocked_api_request_magpie,
-            workflow_app,
-            mocked_external_services,
+    mocked_download_arxiv,
+    mocked_api_request_beard,
+    mocked_api_request_magpie,
+    workflow_app,
+    mocked_external_services,
 ):
     head = record_insert_or_replace(load_json_fixture('fixtures', 'merger_head.json'))
     db.session.commit()
@@ -451,6 +469,10 @@ def test_merge_with_already_existing_article_in_the_db(
 
 
 @mock.patch(
+    'inspirehep.modules.records.api.open_url_or_path',
+    return_value=StringIO.StringIO()
+)
+@mock.patch(
     'inspirehep.modules.workflows.tasks.arxiv.download_file_to_workflow',
     side_effect=fake_download_file,
 )
@@ -463,6 +485,7 @@ def test_merge_with_already_existing_article_in_the_db(
     side_effect=fake_magpie_api_request,
 )
 def test_merge_without_conflicts_does_not_halt(
+    mocked_attached_file,
     mocked_download_arxiv,
     mocked_api_request_beard,
     mocked_api_request_magpie,

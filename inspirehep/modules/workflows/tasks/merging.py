@@ -121,7 +121,7 @@ def update_record(obj, eng):
     """
     record = InspireRecord.get_record(obj.extra_data['head_uuid'])
     record.clear()
-    record.update(obj.data)
+    record.update(obj.data, files_src_record=obj)
     record.commit()
     obj.save()
     db.session.commit()
