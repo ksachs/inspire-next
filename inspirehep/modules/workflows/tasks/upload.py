@@ -55,8 +55,6 @@ def store_record(obj, eng):
         # Now that we have a recid, we can properly download the documents
         record.download_documents_and_figures(src_records=[obj])
 
-    # Commit any changes to record
-
     obj.data['control_number'] = created_pid
     record.commit()
     obj.save()
