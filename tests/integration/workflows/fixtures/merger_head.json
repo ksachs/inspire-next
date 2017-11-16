@@ -1,28 +1,22 @@
 {
     "$schema": "http://localhost:5000/schemas/records/hep.json",
-    "_collections": [
-        "Literature"
-    ],
+    "_collections": ["Literature"],
     "_files": [
         {
-            "bucket": "c2658e45-6d9c-41b7-bd6d-b16cddb561d6",
+            "bucket": "81e83c90-8f6d-4db4-9571-4b01bbb8a5f9",
             "checksum": "md5:52cb0a0ed6e662eb823327a42c5d6e9b",
             "key": "1705.02541.pdf",
             "size": 2806666,
-            "version_id": "1043bcee-dd8a-4047-b60b-7952de1c1cac"
+            "version_id": "72f78ea9-84d8-4908-8227-0f500feb609b"
         }
     ],
     "abstracts": [
         {
             "source": "arXiv",
-            "value": "We discuss the implications of studies of partition function zeros and equimodular curves for the analytic properties of the Ising model on a square lattice in a magnetic field. In particular we consider the dense set of singularities in the susceptibility of the Ising model at $H=0$ found by Nickel and its relation to the analyticity of the field theory computations of Fonseca and Zamolodchikov. Curator change.\n"
+            "value": "We discuss the implications of studies of partition function zeros and equimodular curves for the analytic properties of the Ising model on a square lattice in a magnetic field. In particular we consider the dense set of singularities in the susceptibility of the Ising model at $H=0$ found by Nickel and its relation to the analyticity of the field theory computations of Fonseca and Zamolodchikov."
         }
     ],
-    "accelerator_experiments": [
-        {
-            "legacy_name": "CERN-LHC-ALICE"
-        }
-    ],
+
     "acquisition_source": {
         "datetime": "2017-05-11T08:50:25.184741",
         "method": "hepcrawl",
@@ -41,91 +35,29 @@
     ],
     "authors": [
         {
-            "affiliations": [
-                {
-                    "curated_relation": true,
-                    "record": {
-                        "$ref": "http://localhost:5000/api/institutions/902725"
-                    },
-                    "value": "CERN"
-                }
-            ],
-            "full_name": "Assis, Mathieu",
-            "signature_block": "ASm",
-            "uuid": "e3b0a6e6-5950-41c4-ba8a-76cd597cb0d5"
+            "affiliations": [],
+            "full_name": "Assis, M."
         },
         {
-            "affiliations": [
-                {
-                    "curated_relation": true,
-                    "record": {
-                        "$ref": "http://localhost:5000/api/institutions/902725"
-                    },
-                    "value": "CERN"
-                }
-            ],
-            "full_name": "Jacobsen, J.L.",
-            "signature_block": "JACABSANj",
-            "uuid": "3f4cc9b7-ade5-4b9c-885c-f20bba88f5e2"
+            "affiliations": [],
+            "full_name": "Jacobsen, J.L."
         },
         {
-            "affiliations": [
-                {
-                    "curated_relation": true,
-                    "record": {
-                        "$ref": "http://localhost:5000/api/institutions/902725"
-                    },
-                    "value": "C"
-                }
-            ],
-            "full_name": "Jensen, I.",
-            "signature_block": "JANSANi",
-            "uuid": "7b11df9d-6ac8-44f4-93bd-1003b3dff38e"
+            "affiliations": [],
+            "full_name": "Jensen, I."
         },
         {
-            "affiliations": [
-                {
-                    "curated_relation": true,
-                    "record": {
-                        "$ref": "http://localhost:5000/api/institutions/902725"
-                    },
-                    "value": "CER"
-                }
-            ],
-            "full_name": "Maillard, J-M.",
-            "signature_block": "MALADj",
-            "uuid": "1d5ed399-9577-4d53-be4b-1e2279a3a493"
+            "affiliations": [],
+            "full_name": "Maillard, J-M."
         },
         {
-            "affiliations": [
-                {
-                    "curated_relation": true,
-                    "record": {
-                        "$ref": "http://localhost:5000/api/institutions/902725"
-                    },
-                    "value": "CERN"
-                }
-            ],
-            "full_name": "McCoy, B.M.",
-            "signature_block": "MCYb",
-            "uuid": "3a75404c-664c-4369-8ced-3fd9e9050c19"
+            "affiliations": [],
+            "full_name": "McCoy, B.M."
         }
     ],
     "citeable": true,
-    "collaborations": [
-        {
-            "value": "ALICE"
-        }
-    ],
-    "control_number": 1,
-    "core": true,
     "document_type": [
         "article"
-    ],
-    "dois": [
-        {
-            "value": "10.0001/test_doi"
-        }
     ],
     "inspire_categories": [
         {
@@ -135,44 +67,6 @@
         {
             "source": "arxiv",
             "term": "General Physics"
-        },
-        {
-            "term": "Instrumentation"
-        }
-    ],
-    "keywords": [
-        {
-            "source": "magpie",
-            "value": "Ising model"
-        },
-        {
-            "source": "magpie",
-            "value": "partition function"
-        },
-        {
-            "source": "magpie",
-            "value": "lattice field theory"
-        },
-        {
-            "source": "magpie",
-            "value": "analytic properties"
-        },
-        {
-            "source": "magpie",
-            "value": "lattice"
-        },
-        {
-            "source": "magpie",
-            "value": "singularity"
-        },
-        {
-            "source": "magpie",
-            "value": "dimension: 2"
-        },
-        {
-            "schema": "INSPIRE",
-            "source": "",
-            "value": "whatever\n"
         }
     ],
     "license": [
@@ -181,43 +75,25 @@
             "url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
         }
     ],
-    "number_of_pages": 21,
+    "number_of_pages": 20,
     "preprint_date": "2017-05-06",
     "public_notes": [
         {
             "source": "arXiv",
             "value": "21 pages, 13 figures"
-        },
-        {
-            "value": "*Temporary entry*"
-        },
-        {
-            "value": "This is a test public note by the curator\n"
         }
     ],
-    "refereed": true,
     "report_numbers": [
         {
             "source": "hepcrawl",
             "value": "LPTENS/17/12"
-        },
-        {
-            "value": "CURATOR-001"
         }
     ],
     "titles": [
         {
             "source": "arXiv",
-            "title": "Analyticity of the Ising curation: An interpretation"
+            "title": "Analyticity of the Ising susceptibility: An interpretation"
         }
     ],
-    "documents": [
-        {
-            "key": "1705.02541.pdf",
-            "original_url": "http://export.arxiv.org/pdf/1705.02541",
-            "source": "arxiv",
-            "fulltext": true,
-            "url" : "random/path/to/file"
-        }
-    ]
+    "control_number": 1
 }

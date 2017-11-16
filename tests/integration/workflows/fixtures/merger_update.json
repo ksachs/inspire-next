@@ -1,44 +1,35 @@
 {
-    "preprint_date": "2017-05-06",
-    "report_numbers": [
+    "$schema": "http://localhost:5000/schemas/records/hep.json",
+    "_collections": ["Literature"],
+    "_files": [
         {
-            "source": "hepcrawl",
-            "value": "LPTENS/17/12"
+            "bucket": "81e83c90-8f6d-4db4-9571-4b01bbb8a5f9",
+            "checksum": "md5:52cb0a0ed6e662eb823327a42c5d6e9b",
+            "key": "1705.02541.pdf",
+            "size": 2806666,
+            "version_id": "72f78ea9-84d8-4908-8227-0f500feb609b"
+        }
+    ],
+    "abstracts": [
+        {
+            "source": "arXiv",
+            "value": "We discuss the implications of studies of partition function zeros and equimodular curves for the analytic properties of the Ising model on a square lattice in a magnetic field. In particular we consider the dense set of singularities in the susceptibility of the Ising model at $H=0$ found by Nickel and its relation to the analyticity of the field theory computations of Fonseca and Zamolodchikov."
         }
     ],
     "acquisition_source": {
-        "source": "arXiv",
         "datetime": "2017-05-11T08:50:25.184741",
         "method": "hepcrawl",
+        "source": "arXiv",
         "submission_number": "db9325b2362611e78bfd0242ac12000b"
     },
-    "license": [
+    "arxiv_eprints": [
         {
-            "url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
-            "license": "arXiv-1.0"
-        }
-    ],
-    "public_notes": [
-        {
-            "source": "arXiv",
-            "value": "21 pages, 13 figures"
-        }
-    ],
-    "number_of_pages": 23,
-    "_files": [
-        {
-            "key": "1705.02541.pdf",
-            "size": 2806666
-        }
-    ],
-    "inspire_categories": [
-        {
-            "source": "arxiv",
-            "term": "Math and Math Physics"
-        },
-        {
-            "source": "arxiv",
-            "term": "General Physics"
+            "categories": [
+                "math-ph",
+                "cond-mat.stat-mech",
+                "math.MP"
+            ],
+            "value": "1705.02541"
         }
     ],
     "authors": [
@@ -63,42 +54,45 @@
             "full_name": "McCoy, B.M."
         }
     ],
+    "citeable": true,
+    "document_type": [
+        "proceedings"
+    ],
+    "inspire_categories": [
+        {
+            "source": "arxiv",
+            "term": "Math and Math Physics"
+        },
+        {
+            "source": "arxiv",
+            "term": "General Physics"
+        }
+    ],
+    "license": [
+        {
+            "license": "arXiv-1.0",
+            "url": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+        }
+    ],
+    "number_of_pages": 20,
+    "preprint_date": "2017-05-06",
+    "public_notes": [
+        {
+            "source": "arXiv",
+            "value": "21 pages, 13 figures"
+        }
+    ],
+    "report_numbers": [
+        {
+            "source": "hepcrawl",
+            "value": "LPTENS/17/12"
+        }
+    ],
     "titles": [
         {
             "source": "arXiv",
             "title": "Analyticity of the Ising susceptibility: An interpretation"
         }
     ],
-    "arxiv_eprints": [
-        {
-            "categories": [
-                "math-ph",
-                "cond-mat.stat-mech",
-                "math.MP"
-            ],
-            "value": "1705.02541"
-        }
-    ],
-    "$schema": "http://localhost:5000/schemas/records/hep.json",
-    "_collections": ["Literature"],
-    "document_type": [
-        "article"
-    ],
-    "abstracts": [
-        {
-            "source": "arXiv",
-            "value": "We discuss the implications of studies of partition function zeros and equimodular curves for the analytic properties of the Ising model on a square lattice in a magnetic field. In particular we consider the dense set of singularities in the susceptibility of the Ising model at $H=0$ found by Nickel and its relation to the analyticity of the field theory computations of Fonseca and Zamolodchikov."
-        }
-    ],
-    "citeable": true,
-    "documents": [],
-    "_files": [
-        {
-            "bucket": "c2658e45-6d9c-41b7-bd6d-b16cddb561d6",
-            "checksum": "md5:52cb0a0ed6e662eb823327a42c5d6e9b",
-            "key": "1705.02541.pdf",
-            "size": 2806666,
-            "version_id": "1043bcee-dd8a-4047-b60b-7952de1c1cac"
-        }
-    ]
+    "control_number": 1
 }

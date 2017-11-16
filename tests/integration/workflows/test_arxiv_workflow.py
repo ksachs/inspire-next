@@ -269,9 +269,10 @@ def test_harvesting_arxiv_workflow_manual_accepted(
     side_effect=fake_magpie_api_request,
 )
 def test_match_in_holdingpen_stops_pending_wf(
-    mocked_download_arxiv,
-    mocked_api_request_beard,
     mocked_api_request_magpie,
+    mocked_api_request_beard,
+    mocked_download_arxiv,
+    mocked_is_pdf,
     workflow_app,
     mocked_external_services,
 ):
@@ -327,9 +328,10 @@ def test_match_in_holdingpen_stops_pending_wf(
     side_effect=fake_magpie_api_request,
 )
 def test_match_in_holdingpen_previously_rejected_wf_stop(
-    mocked_download_arxiv,
-    mocked_api_request_beard,
     mocked_api_request_magpie,
+    mocked_api_request_beard,
+    mocked_download_arxiv,
+    mocked_is_pdf,
     workflow_app,
     mocked_external_services,
 ):
@@ -377,10 +379,10 @@ def test_match_in_holdingpen_previously_rejected_wf_stop(
     side_effect=fake_magpie_api_request,
 )
 def test_match_in_holdingpen_different_sources_continues(
-    mocked_attached_file,
-    mocked_download_arxiv,
-    mocked_api_request_beard,
     mocked_api_request_magpie,
+    mocked_api_request_beard,
+    mocked_download_arxiv,
+    mocked_is_pdf,
     workflow_app,
     mocked_external_services,
 ):
@@ -425,9 +427,10 @@ def test_match_in_holdingpen_different_sources_continues(
     side_effect=fake_magpie_api_request,
 )
 def test_merge_with_already_existing_article_in_the_db(
-    mocked_download_arxiv,
-    mocked_api_request_beard,
     mocked_api_request_magpie,
+    mocked_api_request_beard,
+    mocked_download_arxiv,
+    mocked_is_pdf,
     workflow_app,
     mocked_external_services,
 ):
@@ -485,10 +488,10 @@ def test_merge_with_already_existing_article_in_the_db(
     side_effect=fake_magpie_api_request,
 )
 def test_merge_without_conflicts_does_not_halt(
-    mocked_attached_file,
-    mocked_download_arxiv,
-    mocked_api_request_beard,
     mocked_api_request_magpie,
+    mocked_api_request_beard,
+    mocked_download_arxiv,
+    mocked_is_pdf,
     workflow_app,
     mocked_external_services,
 ):
