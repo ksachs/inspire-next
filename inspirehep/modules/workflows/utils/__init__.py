@@ -27,8 +27,10 @@ from __future__ import absolute_import, division, print_function
 import json
 import logging
 import os
+import tempfile
 import traceback
 from contextlib import closing
+from fs.opener import fsopen
 from functools import wraps
 
 import backoff
@@ -147,12 +149,26 @@ def with_debug_logging(func):
     return _decorator
 
 
+def get_uri(uri, outdir=None):
+    """Retrieves the given uri and stores it in a temporary file."""
+    fd, local_file = tempfile.mkstemp(prefix='inspire', dir=outdir)
+    os.close(fd)
+
+    with fsopen(uri, 'rb') as remote_fd:
+        data = remote_fd.read()
+
+    with open(local_file, 'w') as local_fd:
+        local_fd.write(data)
+
+    return local_file
+
+
 @with_debug_logging
 def get_pdf_in_workflow(obj):
     """Return the fullpath to the PDF attached to a workflow object"""
     for filename in obj.files.keys:
         if filename.endswith('.pdf'):
-            return obj.files[filename].file.uri
+            return get_uri(obj.files[filename].file.uri)
 
     obj.log.info('No PDF available')
 

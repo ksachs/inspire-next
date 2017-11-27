@@ -50,7 +50,7 @@ from plotextractor.converter import untar
 from plotextractor.errors import InvalidTarball, NoTexFilesFound
 
 from ..errors import DownloadError
-from ..utils import download_file_to_workflow, with_debug_logging
+from ..utils import download_file_to_workflow, get_uri, with_debug_logging
 
 
 REGEXP_AUTHLIST = re.compile(
@@ -135,14 +135,24 @@ def arxiv_plot_extract(obj, eng):
 
     if tarball:
         with TemporaryDirectory(prefix='plot_extract') as scratch_space:
+            tarball_file = get_uri(tarball.file.uri, outdir=scratch_space)
             try:
-                plots = process_tarball(tarball.file.uri, output_directory=scratch_space)
+                plots = process_tarball(
+                    tarball_file,
+                    output_directory=scratch_space,
+                )
             except (InvalidTarball, NoTexFilesFound):
                 obj.log.info(
-                    'Invalid tarball %s for arxiv_id %s', tarball.file.uri, arxiv_id)
+                    'Invalid tarball %s for arxiv_id %s',
+                    tarball.file.uri,
+                    arxiv_id,
+                )
                 return
             except DelegateError as err:
-                obj.log.error('Error extracting plots for %s. Report and skip.', arxiv_id)
+                obj.log.error(
+                    'Error extracting plots for %s. Report and skip.',
+                    arxiv_id,
+                )
                 current_app.logger.exception(err)
                 return
 
@@ -162,7 +172,10 @@ def arxiv_plot_extract(obj, eng):
                     caption=''.join(plot.get('captions', [])),
                     label=plot.get('label'),
                     material='preprint',
-                    url='/api/files/{bucket}/{key}'.format(bucket=obj.files[key].bucket_id, key=key)
+                    url='/api/files/{bucket}/{key}'.format(
+                        bucket=obj.files[key].bucket_id,
+                        key=key,
+                    )
                 )
 
             obj.data = lb.record
@@ -213,10 +226,15 @@ def arxiv_author_list(stylesheet="authorlist2marcxml.xsl"):
 
         if tarball:
             with TemporaryDirectory(prefix='author_list') as scratch_space:
+                tarball_file = get_uri(tarball.file.uri, outdir=scratch_space)
                 try:
-                    file_list = untar(tarball.file.uri, scratch_space)
+                    file_list = untar(tarball_file, scratch_space)
                 except InvalidTarball:
-                    obj.log.info('Invalid tarball %s for arxiv_id %s', tarball.file.uri, arxiv_id)
+                    obj.log.info(
+                        'Invalid tarball %s for arxiv_id %s',
+                        tarball.file.uri,
+                        arxiv_id,
+                    )
                     return
                 obj.log.info('Extracted tarball to: {0}'.format(scratch_space))
 

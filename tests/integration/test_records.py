@@ -43,7 +43,7 @@ from inspirehep.modules.records.tasks import merge_merged_records, update_refs
 from inspirehep.modules.migrator.tasks import record_insert_or_replace
 from inspirehep.utils.record_getter import get_db_record, get_es_records
 
-from utils import _delete_record, mock_addresses
+from utils import _delete_record
 
 
 def _delete_merged_records(pid_type, merged_pid_value, deleted_pid_value, merged_uuid, deleted_uuid):
@@ -377,7 +377,7 @@ def test_records_files_attached_correctly(app):
 
 
 @patch(
-    'inspirehep.modules.records.utils.open',
+    'inspirehep.modules.records.api.fsopen',
     mock_open(read_data='dummy body'),
 )
 def test_create_handles_documents(app):
@@ -442,14 +442,10 @@ def test_update_handles_documents(app):
     updated_json = record_json
     updated_json.update(copy.deepcopy(update_to_record))
 
-    mocked_addresses = [
-        {
-            'method': 'GET',
-            'url': 'http://www.mdpi.com/2218-1997/3/1/24/pdf',
-            'body': StringIO.StringIO(expected_file_content),
-        }
-    ]
-    with mock_addresses(mocked_addresses):
+    with patch(
+        'inspirehep.modules.records.api.fsopen',
+        mock_open(read_data=expected_file_content),
+    ):
         record.update(updated_json)
 
     assert expected_key in record.files.keys
@@ -460,7 +456,7 @@ def test_update_handles_documents(app):
 
 
 @patch(
-    'inspirehep.modules.records.utils.open',
+    'inspirehep.modules.records.api.fsopen',
     mock_open(read_data='dummy body'),
 )
 def test_create_handles_figures(app):
@@ -525,14 +521,10 @@ def test_update_handles_figures(app):
     updated_json = record_json
     updated_json.update(copy.deepcopy(update_to_record))
 
-    mocked_addresses = [
-        {
-            'method': 'GET',
-            'url': 'http://www.mdpi.com/2218-1997/3/1/24/png',
-            'body': StringIO.StringIO(expected_file_content),
-        }
-    ]
-    with mock_addresses(mocked_addresses):
+    with patch(
+        'inspirehep.modules.records.api.fsopen',
+        mock_open(read_data=expected_file_content),
+    ):
         record.update(updated_json)
 
     assert expected_key in record.files.keys
@@ -543,7 +535,7 @@ def test_update_handles_figures(app):
 
 
 @patch(
-    'inspirehep.modules.records.utils.open',
+    'inspirehep.modules.records.api.fsopen',
     mock_open(read_data='doc1 body'),
 )
 def test_update_with_only_new(app):
@@ -595,14 +587,10 @@ def test_update_with_only_new(app):
     record.clear()
     record_json.update(copy.deepcopy(update_to_record))
 
-    mocked_addresses = [
-        {
-            'method': 'GET',
-            'url': 'http://www.mdpi.com/2218-1997/3/1/24/pdf',
-            'body': StringIO.StringIO(doc2_expected_file_content),
-        }
-    ]
-    with mock_addresses(mocked_addresses):
+    with patch(
+        'inspirehep.modules.records.api.fsopen',
+        mock_open(read_data=doc2_expected_file_content),
+    ):
         record.update(record_json, only_new=True)
 
     assert len(record['documents']) == len(update_to_record['documents'])
@@ -623,7 +611,7 @@ def test_update_with_only_new(app):
 
 
 @patch(
-    'inspirehep.modules.records.utils.open',
+    'inspirehep.modules.records.api.fsopen',
     mock_open(read_data='dummy body'),
 )
 def test_create_with_source_record_with_same_control_number(app):
@@ -678,7 +666,7 @@ def test_create_with_source_record_with_same_control_number(app):
 
 
 @patch(
-    'inspirehep.modules.records.utils.open',
+    'inspirehep.modules.records.api.fsopen',
     mock_open(read_data='dummy body'),
 )
 def test_create_with_source_record_with_different_control_number(app):
@@ -738,7 +726,7 @@ def test_create_with_source_record_with_different_control_number(app):
 
 
 @patch(
-    'inspirehep.modules.records.utils.open',
+    'inspirehep.modules.records.api.fsopen',
     mock_open(read_data='dummy body'),
 )
 def test_create_with_multiple_source_records(app):
@@ -873,7 +861,7 @@ def test_create_with_records_skip_files_conf_does_not_add_documents_or_figures(a
 
 
 @patch(
-    'inspirehep.modules.records.utils.open',
+    'inspirehep.modules.records.api.fsopen',
     mock_open(read_data='dummy body'),
 )
 def test_create_with_skip_files_param_overrides_records_skip_files_conf_and_does_add_documents_or_figures(app):
@@ -904,15 +892,11 @@ def test_create_with_skip_files_param_overrides_records_skip_files_conf_and_does
     expected_figure_file_content = 'dummy body'
     expected_figure_key = '1_graph.png'
 
-    mocked_addresses = [
-        {
-            'method': 'GET',
-            'url': 'http://www.mdpi.com/2218-1997/3/1/24/png',
-            'body': StringIO.StringIO(expected_figure_file_content),
-        }
-    ]
     with patch.dict(app.config, {'RECORDS_SKIP_FILES': True}):
-        with mock_addresses(mocked_addresses):
+        with patch(
+            'inspirehep.modules.records.api.fsopen',
+            mock_open(read_data=expected_figure_file_content),
+        ):
             record = InspireRecord.create(record_json, skip_files=False)
 
     assert len(record.files) == 2

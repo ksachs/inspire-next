@@ -47,6 +47,7 @@ from inspirehep.modules.workflows.tasks.actions import (
     refextract,
     shall_halt_workflow,
 )
+from inspirehep.modules.workflows.utils import get_uri
 
 from mocks import MockEng, MockObj
 
@@ -426,8 +427,12 @@ def test_prepare_update_payload_overwrites():
 
 @patch('inspirehep.modules.workflows.tasks.actions.get_pdf_in_workflow')
 def test_refextract_from_pdf(mock_get_pdf_in_workflow):
-    mock_get_pdf_in_workflow.return_value = pkg_resources.resource_filename(
-        __name__, os.path.join('fixtures', '1704.00452.pdf'))
+    mock_get_pdf_in_workflow.return_value = get_uri(
+        pkg_resources.resource_filename(
+            __name__,
+            os.path.join('fixtures', '1704.00452.pdf'),
+        )
+    )
 
     schema = load_schema('hep')
     subschema = schema['properties']['acquisition_source']
